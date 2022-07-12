@@ -30,7 +30,7 @@ exports.createSauce = (req, res, next) => {
     });
 
     sauce.save()
-        .then(() => { res.status(201).json({ message: 'Item saved!' }) })
+        .then(() => { res.status(201).json({ message: 'Sauce saved!' }) })
         .catch(error => { res.status(400).json({ error }) });
 };
 
@@ -40,14 +40,19 @@ exports.updateSauce = (req, res, next) => {
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
 
+    // if (req.file) {
+    //     const originalFileName = req.body.imageUrl.split('/images/')[1];
+    //     fs.unlink(`images/${originalFileName}`, () => console.log('Original image deleted'));
+    // }
+
     delete sauceObject._userId;
     Sauce.findOne({ _id: req.params.id })
         .then((thing) => {
             if (thing.userId != req.auth.userId) {
-                res.status(401).json({ message: 'Unauthorized' });
+                res.status(403).json({ message: 'Unauthorized request' });
             } else {
                 Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
-                    .then(() => res.status(200).json({ message: 'Item updated!' }))
+                    .then(() => res.status(200).json({ message: 'Sauce updated!' }))
                     .catch(error => res.status(401).json({ error }));
             }
         })
@@ -63,7 +68,7 @@ exports.deleteSauce = (req, res, next) => {
                 const filename = sauce.imageUrl.split('/images/')[1];
                 fs.unlink(`images/${filename}`, () => {
                     Sauce.deleteOne({ _id: req.params.id })
-                        .then(() => res.status(200).json({ message: 'Item deleted!' }))
+                        .then(() => res.status(200).json({ message: 'Sauce deleted!' }))
                         .catch(error => res.status(401).json({ error }));
                 });
             }
@@ -71,6 +76,41 @@ exports.deleteSauce = (req, res, next) => {
         .catch(error => res.status(500).json({ error }));
 };
 
-// exports.likeSauce = (req, res, next) => {
-
-// }
+exports.likeSauce = (req, res, next) => {
+    Sauce.findOne({ _id: req.params.id })
+        .then(sauce => {
+            switch (req.body.like) {
+                case parseInt(1):
+                    if (!(sauce.usersLiked.includes(req.body.userId))) {
+                        sauce.likes++;
+                        sauce.usersLiked.push(req.body.userId);
+                    }
+                    break;
+                case parseInt(-1):
+                    if (!(sauce.usersDisliked.includes(req.body.userId))) {
+                        sauce.dislikes++;
+                        sauce.usersDisliked.push(req.body.userId);
+                    }
+                    break;
+                case parseInt(0):
+                    if (sauce.usersLiked.includes(req.body.userId)) {
+                        const userIndex = sauce.usersLiked.findIndex(id => id == req.body.userId);
+                        sauce.usersLiked.splice(userIndex, 1);
+                        sauce.likes--;
+                    }
+                    if (sauce.usersDisliked.includes(req.body.userId)) {
+                        const userIndex = sauce.usersDisliked.findIndex(id => id == req.body.userId);
+                        sauce.usersDisliked.splice(userIndex, 1);
+                        sauce.dislikes--;
+                    }
+                    break;
+                default:
+                    return sauce;
+                }
+            Sauce.updateOne({ _id: req.params.id }, sauce)
+                .then(() => res.status(200).json({ message: 'Sauce updated!' }))
+                .catch(error => res.status(401).json({ error }));
+            }
+        )
+        .catch(error => res.status(500).json({ error }));
+}
