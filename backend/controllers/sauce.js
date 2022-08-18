@@ -81,13 +81,13 @@ exports.likeSauce = (req, res, next) => {
         .then(sauce => {
             switch (req.body.like) {
                 case parseInt(1):
-                    if (!(sauce.usersLiked.includes(req.body.userId))) {
+                    if (!(sauce.usersLiked.includes(req.body.userId)) && !(sauce.usersDisliked.includes(req.body.userId))) {
                         sauce.likes++;
                         sauce.usersLiked.push(req.body.userId);
                     }
                     break;
                 case parseInt(-1):
-                    if (!(sauce.usersDisliked.includes(req.body.userId))) {
+                    if (!(sauce.usersDisliked.includes(req.body.userId)) && !(sauce.usersLiked.includes(req.body.userId))) {
                         sauce.dislikes++;
                         sauce.usersDisliked.push(req.body.userId);
                     }

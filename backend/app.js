@@ -5,7 +5,7 @@ const path = require('path');
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 
-mongoose.connect('mongodb+srv://Solepsia:2UmVAJ2Mr5p0QXD1@spicycluster.cebu0.mongodb.net/?retryWrites=true&w=majority',
+mongoose.connect(process.env.DATABASE_ADDRESS,
     { useNewUrlParser: true,
       useUnifiedTopology: true })
     .then(() => console.log('Successfully connected to MongoDB!'))
