@@ -2,6 +2,13 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+const fs = require('fs');
+const dir = './images';
+
+if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir);
+}
+
 const http = require('http');
 const app = require('./app');
 
