@@ -2,6 +2,7 @@ const auth = require('../middleware/auth');
 const fs = require('fs');
 
 const Sauce = require('../models/sauce');
+const { isBuffer } = require('util');
 
 exports.getAllSauces = (req, res, next) => {
     Sauce.find()
@@ -46,9 +47,13 @@ exports.updateSauce = (req, res, next) => {
             if (sauce.userId != req.auth.userId) {
                 res.status(403).json({ message: 'Unauthorized request' });
             } else {
-                if (sauce.imageUrl) {
+                if (sauce.imageUrl && req.file) {
                     const originalFileName = sauce.imageUrl.split('/images/')[1];
-                    fs.unlink(`images/${originalFileName}`);
+                    fs.unlink(`images/${originalFileName}`, (err => {
+                        if(err) {
+                            console.error(err);
+                        }
+                    }));
                 }
                 Sauce.updateOne({ _id: req.params.id }, { ...newSauceObject, _id: req.params.id })
                     .then(() => res.status(200).json({ message: 'Sauce updated!' }))
